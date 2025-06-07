@@ -4,16 +4,17 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.yandex.buggyweatherapp.api.WeatherApiService
+import ru.yandex.buggyweatherapp.domain.WeatherRepository
 import ru.yandex.buggyweatherapp.model.Location
 import ru.yandex.buggyweatherapp.model.WeatherData
 
-class WeatherRepository(
+internal class WeatherRepositoryImpl(
     private val weatherApi: WeatherApiService
-) {
+) : WeatherRepository {
 
     private var cachedWeatherData: WeatherData? = null
 
-    suspend fun getWeatherData(location: Location, callback: (WeatherData?, Exception?) -> Unit) {
+    override suspend fun getWeatherData(location: Location, callback: (WeatherData?, Exception?) -> Unit) {
         return withContext(Dispatchers.IO) {
             try {
                 val response =
@@ -31,7 +32,7 @@ class WeatherRepository(
         }
     }
 
-    suspend fun getWeatherByCity(cityName: String, callback: (WeatherData?, Exception?) -> Unit) {
+    override suspend fun getWeatherByCity(cityName: String, callback: (WeatherData?, Exception?) -> Unit) {
         return withContext(Dispatchers.IO) {
             try {
                 val response = weatherApi.getWeatherByCity(cityName).execute()

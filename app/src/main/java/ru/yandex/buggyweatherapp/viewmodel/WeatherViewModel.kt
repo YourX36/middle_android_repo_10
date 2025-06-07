@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ru.yandex.buggyweatherapp.R
+import ru.yandex.buggyweatherapp.domain.LocationRepository
+import ru.yandex.buggyweatherapp.domain.WeatherRepository
 import ru.yandex.buggyweatherapp.model.Location
 import ru.yandex.buggyweatherapp.model.WeatherData
-import ru.yandex.buggyweatherapp.repository.LocationRepository
-import ru.yandex.buggyweatherapp.repository.WeatherRepository
 import ru.yandex.buggyweatherapp.utils.StringProvider
 
 class WeatherViewModel(
@@ -25,6 +25,9 @@ class WeatherViewModel(
     private val _weatherState = MutableStateFlow<WeatherScreenState>(WeatherScreenState.Idle)
     val weatherState = _weatherState.asStateFlow()
 
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
     private var cachedWeatherData : WeatherData? = null
 
     private var refreshJob: Job? = null
@@ -34,7 +37,10 @@ class WeatherViewModel(
         startAutoRefresh()
     }
     
-    
+    fun updateSearchText(text: String) {
+        _searchText.update { text }
+    }
+
     fun fetchCurrentLocationWeather() {
         showLoading()
         viewModelScope.launch {
@@ -102,6 +108,7 @@ class WeatherViewModel(
     }
 
     private fun startAutoRefresh() {
+        if (refreshJob?.isActive == true) return
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
             delay(AUTO_REFRESH_TIMER)

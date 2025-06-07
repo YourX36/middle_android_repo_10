@@ -25,9 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,7 +41,7 @@ fun WeatherScreen(viewModel: WeatherViewModel, modifier: Modifier = Modifier) {
 
     val weatherState by viewModel.weatherState.collectAsState()
     
-    var searchText by remember { mutableStateOf("") }
+    val searchText by viewModel.searchText.collectAsState()
     
     Column(
         modifier = modifier
@@ -54,12 +51,11 @@ fun WeatherScreen(viewModel: WeatherViewModel, modifier: Modifier = Modifier) {
     ) {
         OutlinedTextField(
             value = searchText,
-            onValueChange = { searchText = it },
+            onValueChange = { viewModel.updateSearchText(it) },
             label = { Text(stringResource(R.string.search_city)) },
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                IconButton(onClick = { 
-                    
+                IconButton(onClick = {
                     viewModel.searchWeatherByCity(searchText) 
                 }) {
                     Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search))
