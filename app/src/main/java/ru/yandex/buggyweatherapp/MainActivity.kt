@@ -3,67 +3,52 @@ package ru.yandex.buggyweatherapp
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import ru.yandex.buggyweatherapp.ui.screens.WeatherScreen
 import ru.yandex.buggyweatherapp.ui.theme.BuggyWeatherAppTheme
 import ru.yandex.buggyweatherapp.viewmodel.WeatherViewModel
 
 class MainActivity : ComponentActivity() {
-    
-    private val weatherViewModel = WeatherViewModel()
-    
+
+    private val weatherViewModel by viewModel<WeatherViewModel>()
+
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         when {
             permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
-                
+                weatherViewModel.fetchCurrentLocationWeather()
             }
+
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
-                
+                weatherViewModel.fetchCurrentLocationWeather()
             }
+
             else -> {
-                
+                Toast.makeText(
+                    this,
+                    getString(R.string.location_permission_denied), Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        val hasFineLocation = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        
-        val hasCoarseLocation = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        
-        if (!hasFineLocation && !hasCoarseLocation) {
-            locationPermissionRequest.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        }
-        
+
+        requestLocationPermissions()
+
         enableEdgeToEdge()
-        
+
         setContent {
             BuggyWeatherAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -75,19 +60,24 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun WeatherAppPreview() {
-    BuggyWeatherAppTheme {
-        
-        Text("Weather App Preview")
+    private fun requestLocationPermissions() {
+        if (hasLocationPermissions()) {
+            weatherViewModel.fetchCurrentLocationWeather()
+        } else {
+            locationPermissionRequest.launch(LOCATION_PERMISSIONS)
+        }
+    }
+
+    private fun hasLocationPermissions(): Boolean {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private companion object {
+        val LOCATION_PERMISSIONS = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
     }
 }

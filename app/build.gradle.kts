@@ -71,6 +71,9 @@ dependencies {
     
     // Coil image loading
     implementation(libs.coil.compose)
+
+    //Koin
+    implementation(libs.koin.android)
     
     // Testing
     testImplementation(libs.junit)
